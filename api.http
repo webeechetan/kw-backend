@@ -1,0 +1,60 @@
+@url = http://localhost/ved/api/
+@accept= Accept: application/json
+@token = 19|FJ0HZAf3eGV9XwKQA51NsEUS43PK9AhSQqMTdh5l
+@auth = Authorization: Bearer {{token}}
+@contentType = Content-Type: application/json
+
+### Generate Authorization Token
+
+POST {{url}}user/login
+{{contentType}}
+
+{
+    "email" : "chetan@gmail.com",
+    "password" : "12345"
+}
+
+
+### List of categories
+GET {{url}}category
+{{accept}}
+{{auth}}
+
+### Create a new category
+
+POST {{url}}category/create
+{{contentType}}
+{{auth}}
+{{accept}}
+
+{
+    "name" : "Hello World"
+}
+
+### Delete a category
+
+POST {{url}}category/delete
+{{contentType}}
+{{auth}}
+{{accept}}
+
+{
+    "id" : "3"
+}
+
+###
+
+GET {{url}}book
+{{auth}}
+{{accept}}
+
+
+
+
+
+
+
+
+
+
+
