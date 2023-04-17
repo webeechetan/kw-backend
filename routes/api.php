@@ -6,6 +6,7 @@ use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ClientController;
 
 global $notfound;
 
@@ -14,6 +15,14 @@ Route::post('/organization/register', [OrganizationController::class, 'register'
 
 /* Orgination Login */
 Route::post('/organization/login', [OrganizationController::class, 'login']);
+
+/* Client Resource */
+
+Route::apiResource('/clients', ClientController::class)
+        ->middleware('auth:sanctum')
+        ->missing(function(){
+            return response()->json(["success"=>false, "message"=>"Client not found"],404);
+        });
 
 /* Users Resource */
 Route::apiResource('/users', UserController::class)
