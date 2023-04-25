@@ -12,7 +12,8 @@ class Organization extends Authenticatable
 {
     use HasFactory, HasApiTokens, Notifiable;
 
-    protected $hidden = ['password'];
+    protected $hidden = ['password', 'created_at', 'updated_at'];
+
 
     protected $fillable = [
         'name',

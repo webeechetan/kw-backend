@@ -16,7 +16,7 @@ class ProjectController extends Controller
     public function index(Request $request)
     {
         $org_id = $request->user()->id;
-        $projects = Project::with(['users','teams'])->where('org_id', $org_id)->get();
+        $projects = Project::with(['users','teams','client'])->where('org_id', $org_id)->get();
         return $this->sendResponse($projects);
     }
 
@@ -30,7 +30,8 @@ class ProjectController extends Controller
     {
         $rules = [
             'name' => 'required|string',
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
+            'client_id' => 'required|integer',
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -38,6 +39,7 @@ class ProjectController extends Controller
             return $this->sendError("Validation Error",$validator->errors(),'400');
         }
         $project = new Project();
+        $project->client_id = $request->client_id;
         $project->org_id = $request->user()->id;
         $project->name = $request->name;
         $project->description = $request->description;

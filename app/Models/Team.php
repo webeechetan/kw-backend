@@ -11,6 +11,11 @@ class Team extends Model
 {
     use HasFactory;
 
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
     public function getImageAttribute($val){
         return env('APP_URL').'/teams/'.$val;
     }

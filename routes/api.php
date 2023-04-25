@@ -7,6 +7,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\TaskController;
+
 
 global $notfound;
 
@@ -52,4 +54,18 @@ Route::apiResource('/projects', ProjectController::class)
         ->middleware('auth:sanctum')
         ->missing(function(){
             return response()->json(["success"=>false, "message"=>"Project not found"],404);
+        });
+
+/* Task resources */
+
+Route::apiResource('/tasks', TaskController::class)
+        ->middleware('auth:sanctum')
+        ->missing(function(){
+            return response()->json(["success"=>false, "message"=>"Task not found"],404);
+        });
+
+Route::get('/changeTaskStatusToInProgress/{task}', [TaskController::class, 'changeTaskStatusToInProgress'])
+        ->middleware('auth:sanctum')
+        ->missing(function(){
+            return response()->json(["success"=>false, "message"=>"Task not found"],404);
         });
