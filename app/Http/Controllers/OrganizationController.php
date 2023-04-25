@@ -8,22 +8,13 @@ use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\Organization\OrganizationRegisterRequest;
+use App\Http\Requests\Organization\OrganizationLoginRequest;
 
 class OrganizationController extends Controller
 {
     // Organization registration
-    public function register(Request $request){
-        $rules = [
-            'name' => 'required|unique:organizations|max:255',
-            'email' => 'required|email|unique:organizations',
-            'password' => 'required',
-        ];
-
-        $validator = Validator::make($request->all(), $rules);
- 
-        if ($validator->fails()) {
-            return $this->sendError("Validation Error",$validator->errors(),'400');
-        }
+    public function register(OrganizationRegisterRequest $request){
 
         $organization = new Organization();
         $organization->name = $request->name;
@@ -36,17 +27,7 @@ class OrganizationController extends Controller
     }
 
     // Organization Login
-    public function login(Request $request){
-        $rules = [
-            'email' => 'required',
-            'password' => 'required',
-        ];
-
-        $validator = Validator::make($request->all(), $rules);
- 
-        if ($validator->fails()) {
-            return $this->sendError("Validation Error",$validator->errors(),'400');
-        }
+    public function login(OrganizationLoginRequest $request){
 
         $credentials = ['email'=>$request->email,'password'=>$request->password];
         $login = Auth::guard('organization')->attempt($credentials);

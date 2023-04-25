@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\Client\StoreClientRequest;
+use App\Http\Requests\Client\UpdateClientRequest;
 
 
 class ClientController extends Controller
@@ -17,7 +19,7 @@ class ClientController extends Controller
     public function index(Request $request)
     {
         $org_id = $request->user()->id;
-        $clients = Client::where('org_id', $org_id)->get();
+        $clients = Client::where('org_id', $org_id)->with('projects')->get();
         return response()->json(["success"=>true, "data"=>$clients],200);
 
     }
@@ -28,20 +30,10 @@ class ClientController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreClientRequest $request)
     {
-        $rules = [
-            'name' => 'required|string',
-            'org_id' => 'required|integer'
-        ];
-
-        $validator = Validator::make($request->all(), $rules);
-        if($validator->fails()){
-            return $this->sendError("Validation Error",$validator->errors(),'400');
-        }
-
         $client = new Client();
-        $client->org_id = $request->org_id;
+        $client->org_id = $request->user()->id;
         $client->name = $request->name;
         $client->description = $request->description;
         if($request->hasFile('image')){
@@ -55,7 +47,6 @@ class ClientController extends Controller
             return $this->sendResponse($client,"Client created");
         }
         return $this->sendError("Something went wrong");
-
 
     }
 
@@ -77,19 +68,8 @@ class ClientController extends Controller
      * @param  \App\Models\Client  $client
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Client $client)
+    public function update(UpdateClientRequest $request, Client $client)
     {
-        $rules = [
-            'name' => 'required|string',
-            'org_id' => 'required|integer'
-        ];
-
-        $validator = Validator::make($request->all(), $rules);
-
-        if($validator->fails()){
-            return $this->sendError("Validation Error",$validator->errors(),'400');
-        }
-
         $client->name = $request->name;
         $client->description = $request->description;
         if($request->hasFile('image')){

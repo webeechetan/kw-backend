@@ -18,7 +18,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $org_id = $request->user()->id;
-        $users = User::with('teams')->where('org_id', $org_id)->get();
+        $users = User::getUsersWithTaskCount($org_id);
         return $this->sendResponse($users);
     }
 

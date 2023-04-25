@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('org_id');
             $table->string('name');
             $table->string('description')->nullable();
-            $table->string('image')->nullable();
+            $table->string('image')->nullable()->default('default.png');
             $table->timestamps();
         });
     }
