@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\Project\StoreProjectRequest;
 
 class ProjectController extends Controller
 {
@@ -26,18 +27,8 @@ class ProjectController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreProjectRequest $request)
     {
-        $rules = [
-            'name' => 'required|string',
-            'description' => 'nullable|string',
-            'client_id' => 'required|integer',
-        ];
-
-        $validator = Validator::make($request->all(), $rules);
-        if($validator->fails()){
-            return $this->sendError("Validation Error",$validator->errors(),'400');
-        }
         $project = new Project();
         $project->client_id = $request->client_id;
         $project->org_id = $request->user()->id;
