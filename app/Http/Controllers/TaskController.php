@@ -8,6 +8,7 @@ use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
 use App\Models\User;
 use App\Notifications\NewTaskAssign;
+use App\Notifications\TaskCompleted;
 
 
 class TaskController extends Controller
@@ -122,11 +123,27 @@ class TaskController extends Controller
 
     public function changeTaskStatusToInProgress(Request $request, Task $task){
         $user_id = $request->user()->id;
-        $task->users()->updateExistingPivot($user_id, ['status' => 'in-progress', 'started_at' => now()]);
+        $task->status = "in-progress";
         try {
             if($task->save()){
-                return $this->sendResponse($task, "Task status changed to in progress");
+                $task->users()->syncWithoutDetaching($user_id);
             }
+            return $this->sendResponse($task, "Task status changed to in progress");
+        } catch (\Throwable $th) {
+            return $this->sendError("Something went wrong", $th->getMessage());
+        }
+    }
+
+    public function changeTaskStatusToCompleted(Request $request, Task $task){
+        $user_id = $request->user()->id;
+        $task->status = "completed";
+        $task->completed_by = $user_id;
+        try {
+            if($task->save()){
+                $task->users()->syncWithoutDetaching($user_id);
+                $task->assignedBy->notify(new TaskCompleted($task));
+            }
+            return $this->sendResponse($task, "Task status changed to completed");
         } catch (\Throwable $th) {
             return $this->sendError("Something went wrong", $th->getMessage());
         }

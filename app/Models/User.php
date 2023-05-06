@@ -60,13 +60,13 @@ class User extends Authenticatable
     public static function getUsersWithTaskCount($org_id){
         return User::with('teams', 'tasks')
                 ->withCount(['tasks as pending_tasks_count' => function ($query) {
-                    $query->where('task_user.status', 'pending');
+                    $query->where('tasks.status', 'pending');
                 }])
                 ->withCount(['tasks as completed_tasks_count' => function ($query) {
-                    $query->where('task_user.status', 'completed');
+                    $query->where('tasks.status', 'completed');
                 }])
                 ->withCount(['tasks as in_progress_tasks_count' => function ($query) {
-                    $query->where('task_user.status', 'in-progress');
+                    $query->where('tasks.status', 'in-progress');
                 }])
                 ->where('org_id', $org_id)
                 ->get();
