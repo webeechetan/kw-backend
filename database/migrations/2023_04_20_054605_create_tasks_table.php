@@ -20,11 +20,13 @@ return new class extends Migration
             $table->unsignedBigInteger('project_id')->nullable();
             $table->unsignedBigInteger('team_id')->nullable();
             $table->unsignedBigInteger('assigned_by');
+            $table->unsignedBigInteger('completed_by')->nullable();
             $table->longText('name');
             $table->longText('description')->nullable();
             $table->string('status')->default('pending')->comment('pending, in-progress, completed');
             $table->string('priority')->default('low')->comment('low, medium, high');
             $table->dateTime('due_date')->nullable();
+            $table->dateTime('completed_at')->nullable();
             $table->timestamps();
         });
     }
