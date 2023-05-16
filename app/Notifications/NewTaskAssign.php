@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Notifications\Messages\SlackMessage;
 
 class NewTaskAssign extends Notification implements ShouldQueue
 {
@@ -31,7 +32,7 @@ class NewTaskAssign extends Notification implements ShouldQueue
      */
     public function via($notifiable)
     {
-        return ['mail'];
+        return ['mail','slack'];
     }
 
     /**
@@ -51,6 +52,29 @@ class NewTaskAssign extends Notification implements ShouldQueue
                     ->line('Thank you for using our application!');
 
 
+    }
+
+
+    public function toSlack($notifiable)
+    {
+        return (new SlackMessage)
+                    ->from('Ghost', ':ghost:')
+                    ->to('#task_notifications')
+                    ->success()
+                    ->content('Hey there :smile: '.$this->task->assignedBy->name.' assigned you a new task '.$this->task->name)
+                    ->attachment(function ($attachment) {
+                        $attachment->title('Task Details', route('tasks.show', $this->task->id))
+                                    ->fields([
+                                        'Task Name' => $this->task->name,
+                                        'Task Description' => $this->task->description,
+                                        'Assigned By' => $this->task->assignedBy->name,
+                                        'Assigned To' => $this->task->users->pluck('name')->implode(', '),
+                                    ]);
+                        $attachment->footer('KaykeWalk')
+                                    ->timestamp($this->task->created_at);
+                    });
+        
+                    
     }
 
     /**

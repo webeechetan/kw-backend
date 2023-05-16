@@ -10,6 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 use App\Models\Team;
 use App\Models\Project;
 use App\Models\Task;
+use Illuminate\Notifications\Notification;
 
 class User extends Authenticatable 
 {
@@ -31,6 +32,11 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function routeNotificationForSlack(Notification $notification): string
+    {
+        return env('SLACK_TASKS_WEBHOOK_URL');
+    }
 
     public function getNameAttribute($value){
         return ucfirst($value);
