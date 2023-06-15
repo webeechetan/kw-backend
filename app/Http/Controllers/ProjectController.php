@@ -6,6 +6,7 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\Project\StoreProjectRequest;
+use App\Http\Requests\project\UpdateProjectRequest;
 
 class ProjectController extends Controller
 {
@@ -64,17 +65,18 @@ class ProjectController extends Controller
      * @param  \App\Models\Project  $project
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Project $project)
+    public function update(UpdateProjectRequest $request, Project $project)
     {
-        $rules = [
-            'name' => 'required|string',
-            'description' => 'nullable|string'
-        ];
+        // $rules = [
+        //     'name' => 'required|string',
+        //     'description' => 'nullable|string'
+        // ];
 
-        $validator = Validator::make($request->all(), $rules);
-        if($validator->fails()){
-            return $this->sendError("Validation Error",$validator->errors(),'400');
-        }
+        // $validator = Validator::make($request->all(), $rules);
+        // if($validator->fails()){
+        //     return $this->sendError("Validation Error",$validator->errors(),'400');
+        // }
+        
         $project->name = $request->name;
         $project->description = $request->description;
         if($project->save()){
