@@ -10,6 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 use App\Models\Team;
 use App\Models\Project;
 use App\Models\Task;
+use Illuminate\Notifications\Notification;
 
 class User extends Authenticatable 
 {
@@ -32,6 +33,11 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    public function routeNotificationForSlack(Notification $notification): string
+    {
+        return env('SLACK_TASKS_WEBHOOK_URL');
+    }
+
     public function getNameAttribute($value){
         return ucfirst($value);
     }
@@ -52,7 +58,7 @@ class User extends Authenticatable
     }
 
     public function tasks(){
-        return $this->belongsToMany(Task::class)->withPivot('status');
+        return $this->belongsToMany(Task::class);
     }
 
     // static methods
@@ -60,13 +66,13 @@ class User extends Authenticatable
     public static function getUsersWithTaskCount($org_id){
         return User::with('teams', 'tasks')
                 ->withCount(['tasks as pending_tasks_count' => function ($query) {
-                    $query->where('task_user.status', 'pending');
+                    $query->where('tasks.status', 'pending');
                 }])
                 ->withCount(['tasks as completed_tasks_count' => function ($query) {
-                    $query->where('task_user.status', 'completed');
+                    $query->where('tasks.status', 'completed');
                 }])
                 ->withCount(['tasks as in_progress_tasks_count' => function ($query) {
-                    $query->where('task_user.status', 'in-progress');
+                    $query->where('tasks.status', 'in-progress');
                 }])
                 ->where('org_id', $org_id)
                 ->get();

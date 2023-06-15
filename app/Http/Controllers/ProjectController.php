@@ -55,7 +55,8 @@ class ProjectController extends Controller
      */
     public function show(Project $project)
     {
-        return $this->sendResponse($project);
+        $projects = Project::with(['tasks'])->where('id', $project->id)->first();
+        return $this->sendResponse($projects);
     }
 
     /**

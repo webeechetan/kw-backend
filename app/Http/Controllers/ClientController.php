@@ -58,6 +58,7 @@ class ClientController extends Controller
      */
     public function show(Client $client)
     {
+        $client = Client::where('id', $client->id)->with('projects')->first();
         return $this->sendResponse($client);
     }
 

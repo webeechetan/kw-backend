@@ -17,10 +17,14 @@ class Task extends Model
     ];
 
     public function users(){
-        return $this->belongsToMany(User::class)->withPivot('status');
+        return $this->belongsToMany(User::class);
     }
 
     public function assignedBy(){
         return $this->belongsTo(User::class, 'assigned_by');
+    }
+
+    public function completedBy(){
+        return $this->belongsTo(User::class, 'completed_by');
     }
 }
