@@ -75,3 +75,9 @@ Route::get('/changeTaskStatusToCompleted/{task}', [TaskController::class, 'chang
         ->missing(function(){
             return response()->json(["success"=>false, "message"=>"Task not found"],404);
         });
+
+Route::get('/moveTaskToNextStage/{task}', [TaskController::class, 'moveTaskToNextStage'])
+        ->middleware('auth:sanctum')
+        ->missing(function(){
+            return response()->json(["success"=>false, "message"=>"Task not found"],404);
+        });

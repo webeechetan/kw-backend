@@ -23,7 +23,7 @@ return new class extends Migration
             $table->unsignedBigInteger('completed_by')->nullable();
             $table->longText('name');
             $table->longText('description')->nullable();
-            $table->string('status')->default('pending')->comment('pending, in-progress, completed');
+            $table->string('status')->default('assigned')->comment('assigned','accepted','in_progress','in_review','completed','cancelled');
             $table->string('priority')->default('low')->comment('low, medium, high');
             $table->dateTime('due_date')->nullable();
             $table->dateTime('completed_at')->nullable();
