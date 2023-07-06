@@ -17,7 +17,10 @@ class Team extends Model
     ];
 
     public function getImageAttribute($val){
-        return env('APP_URL').'/teams/'.$val;
+        if($val){
+            return asset('teams/'.$val);
+        }
+        return asset('teams/default.png');
     }
 
     public function setNameAttribute($val){

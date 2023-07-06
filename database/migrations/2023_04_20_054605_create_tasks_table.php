@@ -21,6 +21,7 @@ return new class extends Migration
             $table->unsignedBigInteger('team_id')->nullable();
             $table->unsignedBigInteger('assigned_by');
             $table->unsignedBigInteger('completed_by')->nullable();
+            $table->unsignedBigInteger('when_completed_notify')->nullable();
             $table->longText('name');
             $table->longText('description')->nullable();
             $table->string('status')->default('assigned')->comment('assigned','accepted','in_progress','in_review','completed','cancelled');

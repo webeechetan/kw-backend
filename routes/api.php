@@ -33,6 +33,11 @@ Route::apiResource('/users', UserController::class)
             return response()->json(["success"=>false, "message"=>"User not found"],404);
         });
 
+Route::post('/users/invite', [UserController::class, 'invite'])
+        ->middleware('auth:sanctum');
+
+Route::post('/users/acceptInvite', [UserController::class, 'acceptInvite']);
+
 /* Teams Resource */
 Route::apiResource('/teams', TeamController::class)
         ->middleware('auth:sanctum')
@@ -81,3 +86,8 @@ Route::get('/moveTaskToNextStage/{task}', [TaskController::class, 'moveTaskToNex
         ->missing(function(){
             return response()->json(["success"=>false, "message"=>"Task not found"],404);
         });
+
+/* Task Filters Routes */
+
+Route::get('/tasks/filter/priority/{priority}', [TaskController::class, 'filterByPriority'])
+    ->middleware('auth:sanctum');

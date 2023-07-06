@@ -27,4 +27,8 @@ class Task extends Model
     public function completedBy(){
         return $this->belongsTo(User::class, 'completed_by');
     }
+
+    public function whenCompletedNotify(){
+        return $this->belongsTo(User::class, 'when_completed_notify');
+    }
 }

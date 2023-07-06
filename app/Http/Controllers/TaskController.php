@@ -7,8 +7,12 @@ use Illuminate\Http\Request;
 use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
 use App\Models\User;
+use App\Models\Client;
+use App\Models\Project;
+use App\Models\Team;
 use App\Notifications\NewTaskAssign;
 use App\Notifications\TaskCompleted;
+
 
 
 class TaskController extends Controller
@@ -20,7 +24,7 @@ class TaskController extends Controller
      */
     public function index()
     {
-        $tasks = Task::with('users','assignedBy')->get();
+        $tasks = Task::with('users', 'assignedBy')->get();
         return $this->sendResponse($tasks);
     }
 
@@ -40,26 +44,25 @@ class TaskController extends Controller
         $task->team_id = $request->team_id;
         $task->assigned_by = $request->user()->id;
         $task->description = $request->description;
-        if($request->has('status'))
+        if ($request->has('status'))
             $task->status = $request->status;
-        if($request->has('priority'))
+        if ($request->has('priority'))
             $task->priority = $request->priority;
         $task->due_date = $request->due_date;
         try {
-            if($task->save()){
-                if($request->has('users') && is_array($request->users)){
+            if ($task->save()) {
+                if ($request->has('users') && is_array($request->users)) {
                     $task->users()->attach($request->users);
-                    foreach($request->users as $user){
-                        $user = User::find($user);
-                        $user->notify(new NewTaskAssign($task));
-                    }
+                    // foreach($request->users as $user){
+                    //     $user = User::find($user);
+                    //     $user->notify(new NewTaskAssign($task));
+                    // }
                 }
             }
             return $this->sendResponse($task, "Task created");
         } catch (\Throwable $th) {
             return $this->sendError("Something went wrong", $th->getMessage());
         }
-
     }
 
     /**
@@ -88,14 +91,14 @@ class TaskController extends Controller
         $task->team_id = $request->team_id;
         $task->assigned_by = $request->user()->id;
         $task->description = $request->description;
-        if($request->has('status'))
+        if ($request->has('status'))
             $task->status = $request->status;
-        if($request->has('priority'))
+        if ($request->has('priority'))
             $task->priority = $request->priority;
         $task->due_date = $request->due_date;
         try {
-            if($task->save()){
-                if($request->has('users') && is_array(json_decode($request->users))){
+            if ($task->save()) {
+                if ($request->has('users') && is_array(json_decode($request->users))) {
                     $task->users()->sync(json_decode($request->users));
                 }
             }
@@ -121,11 +124,12 @@ class TaskController extends Controller
         }
     }
 
-    public function changeTaskStatusToInProgress(Request $request, Task $task){
+    public function changeTaskStatusToInProgress(Request $request, Task $task)
+    {
         $user_id = $request->user()->id;
         $task->status = "in_progress";
         try {
-            if($task->save()){
+            if ($task->save()) {
                 $task->users()->syncWithoutDetaching($user_id);
             }
             return $this->sendResponse($task, "Task status changed to in progress");
@@ -134,12 +138,13 @@ class TaskController extends Controller
         }
     }
 
-    public function changeTaskStatusToCompleted(Request $request, Task $task){
+    public function changeTaskStatusToCompleted(Request $request, Task $task)
+    {
         $user_id = $request->user()->id;
         $task->status = "completed";
         $task->completed_by = $user_id;
         try {
-            if($task->save()){
+            if ($task->save()) {
                 $task->users()->syncWithoutDetaching($user_id);
                 $task->assignedBy->notify(new TaskCompleted($task));
             }
@@ -151,12 +156,13 @@ class TaskController extends Controller
 
     // move task to next stage 
 
-    public function moveTaskToNextStage(Request $request,Task $task){
+    public function moveTaskToNextStage(Request $request, Task $task)
+    {
         $user_id = $request->user()->id;
         $task->status = $this->getCurrentTaskNextStage($task->id);
         $task->completed_by = $user_id;
         try {
-            if($task->save()){
+            if ($task->save()) {
                 $task->users()->syncWithoutDetaching($user_id);
                 // $task->assignedBy->notify(new TaskCompleted($task));
             }
@@ -166,19 +172,45 @@ class TaskController extends Controller
         }
     }
 
-    public function getCurrentTaskNextStage($id){
+    public function getCurrentTaskNextStage($id)
+    {
         $task = Task::find($id);
-        if($task->status == 'assigned'){
+        if ($task->status == 'assigned') {
             return 'accepted';
         }
-        if($task->status == 'accepted'){
+        if ($task->status == 'accepted') {
             return 'in_progress';
         }
-        if($task->status == 'in_progress'){
+        if ($task->status == 'in_progress') {
             return 'in_review';
         }
-        if($task->status == 'in_review'){
+        if ($task->status == 'in_review') {
             return 'completed';
         }
+    }
+
+    // filters 
+
+    public function filterByStatus(Request $request)
+    {
+        $status = $request->input('status');
+        $tasks = Task::where('status', $status)->with('users', 'assignedBy')->get();
+        return $this->sendResponse($tasks);
+    }
+
+    public function filterByPriority(Request $request)
+    {
+        $priority = $request->input('priority');
+        $tasks = Task::where('priority', $priority)->with('users', 'assignedBy')->get();
+        return $this->sendResponse($tasks);
+    }
+
+    public function filterByUser(Request $request)
+    {
+        $userId = $request->input('user_id');
+        $tasks = Task::whereHas('users', function ($query) use ($userId) {
+            $query->where('users.id', $userId);
+        })->with('users', 'assignedBy')->get();
+        return $this->sendResponse($tasks);
     }
 }

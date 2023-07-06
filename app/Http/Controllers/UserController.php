@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Hamcrest\Arrays\IsArray;
+use App\Notifications\InviteUser;
+use App\Models\Scopes\VerifiedUserScope;
 
 class UserController extends Controller
 {
@@ -38,28 +40,29 @@ class UserController extends Controller
         ];
 
         $validator = Validator::make($request->all(), $rules);
- 
+
         if ($validator->fails()) {
-            return $this->sendError("Validation Error",$validator->errors(),'400');
+            return $this->sendError("Validation Error", $validator->errors(), '400');
         }
 
         $user = new User();
         $user->name = $request->name;
         $user->email = $request->email;
         $user->password = Hash::make($request->password);
+        $user->is_verified = 1;
         $user->org_id = $request->user()->id;
-        if($request->hasFile('image')){
+        if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $name = time().'.'.$image->getClientOriginalExtension();
+            $name = time() . '.' . $image->getClientOriginalExtension();
             $destinationPath = public_path('/members');
             $image->move($destinationPath, $name);
             $user->image = $name;
         }
-        if($user->save()){
-            if($request->has('teams') && is_array(json_decode($request->teams))){
+        if ($user->save()) {
+            if ($request->has('teams') && is_array(json_decode($request->teams))) {
                 $user->teams()->attach(json_decode($request->teams));
             }
-            return $this->sendResponse($user,"User created");
+            return $this->sendResponse($user, "User created");
         }
         return $this->sendError("Something went wrong");
     }
@@ -87,53 +90,107 @@ class UserController extends Controller
     {
         $rules = [
             'name' => 'required|max:255',
-            'email' => 'required|email|unique:users,email,'.$user->id,
+            'email' => 'required|email|unique:users,email,' . $user->id,
             'password' => 'nullable',
             'image' => 'nullable|mimes:jpg,jpeg,png|max:2048'
         ];
 
         $validator = Validator::make($request->all(), $rules);
- 
+
         if ($validator->fails()) {
-            return $this->sendError("Validation Error",$validator->errors(),'400');
+            return $this->sendError("Validation Error", $validator->errors(), '400');
         }
 
         $user->name = $request->name;
         $user->email = $request->email;
-        if($request->password){
+        if ($request->password) {
             $user->password = Hash::make($request->password);
         }
-        if($request->hasFile('image')){
+        if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $name = time().'.'.$image->getClientOriginalExtension();
+            $name = time() . '.' . $image->getClientOriginalExtension();
             $destinationPath = public_path('/members');
             $image->move($destinationPath, $name);
             $user->image = $name;
         }
-        if($user->save()){
-            if($request->has('teams') && is_array(json_decode($request->teams))){
+        if ($user->save()) {
+            if ($request->has('teams') && is_array(json_decode($request->teams))) {
                 $user->teams()->sync(json_decode($request->teams));
             }
-            return $this->sendResponse($user,"User updated");
+            return $this->sendResponse($user, "User updated");
         }
         return $this->sendError("Something went wrong");
     }
-    
+
     /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(User $user,Request $request)
+    public function destroy(User $user, Request $request)
     {
-        if($user && $user->org_id == $request->user()->id){
-            if($user->delete()){
-                return $this->sendResponse(null,'User deleted successfully');
+        if ($user && $user->org_id == $request->user()->id) {
+            if ($user->delete()) {
+                return $this->sendResponse(null, 'User deleted successfully');
             }
-            return $this->sendError('Something went wrong',[],500);
+            return $this->sendError('Something went wrong', [], 500);
         }
-        return $this->sendError('User does not exist',[],404);
+        return $this->sendError('User does not exist', [], 404);
     }
 
+    public function invite(Request $request)
+    {
+        $rules = [
+            'email' => 'required|email|unique:users',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return $this->sendError("Validation Error", $validator->errors(), '400');
+        }
+
+        $user = new User();
+        $user->name = $request->email;
+        $user->email = $request->email;
+        $user->org_id = $request->user()->id;
+        $user->password = Hash::make('12345678');
+        if ($user->save()) {
+            $user->notify(new InviteUser($user));
+            return $this->sendResponse($user, "User invited");
+        }
+        return $this->sendError("Something went wrong");
+    }
+
+    public function acceptInvite(Request $request)
+    {
+        $rules = [
+            'name' => 'required|max:255',
+            'email' => 'required|email',
+            'password' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return $this->sendError("Validation Error", $validator->errors(), '400');
+        }
+
+       try {
+        $user = User::where('email', $request->email)->first();
+        if ($user) {
+            $user->name = $request->name;
+            $user->password = Hash::make($request->password);
+            $user->is_verified = 1;
+            if ($user->save()) {
+                return $this->sendResponse($user, "User updated");
+            }
+            return $this->sendError("Something went wrong");
+        }
+        return $this->sendError("User not found");
+       } catch (\Throwable $th) {
+           return $this->sendError("Something went wrong");
+       }
+    }
 }

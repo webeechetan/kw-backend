@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('image')->default('default.png');
             $table->rememberToken();
+            $table->boolean('is_verified')->default(false);
             $table->timestamps();
         });
     }

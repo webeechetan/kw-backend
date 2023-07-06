@@ -64,18 +64,29 @@ class User extends Authenticatable
     // static methods
 
     public static function getUsersWithTaskCount($org_id){
-        return User::with('teams', 'tasks')
-                ->withCount(['tasks as pending_tasks_count' => function ($query) {
-                    $query->where('tasks.status', 'pending');
+        return User::verified()->with('teams', 'tasks')
+                ->withCount(['tasks as assigned_tasks_count' => function ($query) {
+                    $query->where('tasks.status', 'assigned');
+                }])
+                ->withCount(['tasks as accepted_tasks_count' => function ($query) {
+                    $query->where('tasks.status', 'accepted');
+                }])
+                ->withCount(['tasks as in_progress_tasks_count' => function ($query) {
+                    $query->where('tasks.status', 'in_progress');
+                }])
+                ->withCount(['tasks as in_review_tasks_count' => function ($query) {
+                    $query->where('tasks.status', 'in_review');
                 }])
                 ->withCount(['tasks as completed_tasks_count' => function ($query) {
                     $query->where('tasks.status', 'completed');
-                }])
-                ->withCount(['tasks as in_progress_tasks_count' => function ($query) {
-                    $query->where('tasks.status', 'in-progress');
                 }])
                 ->where('org_id', $org_id)
                 ->get();
     }
 
+    // scopes
+
+    public function scopeVerified($query){
+        return $query->where('is_verified', 1);
+    }
 }
