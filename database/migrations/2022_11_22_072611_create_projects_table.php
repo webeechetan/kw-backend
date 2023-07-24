@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('org_id');
             $table->unsignedBigInteger('client_id');
             $table->string('name');
-            $table->string('description')->nullable();
+            $table->longText('description')->nullable();
             $table->timestamps();
         });
     }

@@ -32,11 +32,11 @@ class TeamController extends Controller
     public function store(Request $request)
     {
         // return $request;
-        // $rules = [
-        //     'name' => 'required|string',
-        //     'description' => 'nullable|string',
-        //     'image' => 'nullable|mimes:jpg,jpeg,png|max:2048'
-        // ];
+        $rules = [
+            'name' => 'required|string',
+            'description' => 'nullable|string',
+            'image' => 'nullable|mimes:jpg,jpeg,png|max:2048'
+        ];
 
         $validator = Validator::make($request->all(), $rules);
         if($validator->fails()){

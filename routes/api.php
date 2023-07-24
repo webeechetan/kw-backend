@@ -87,6 +87,12 @@ Route::get('/moveTaskToNextStage/{task}', [TaskController::class, 'moveTaskToNex
             return response()->json(["success"=>false, "message"=>"Task not found"],404);
         });
 
+Route::get('/changeTaskStatus/{task}/{status}', [TaskController::class, 'changeTaskStatus'])
+        ->middleware('auth:sanctum')
+        ->missing(function(){
+            return response()->json(["success"=>false, "message"=>"Task not found"],404);
+        });
+
 /* Task Filters Routes */
 
 Route::get('/tasks/filter/priority/{priority}', [TaskController::class, 'filterByPriority'])

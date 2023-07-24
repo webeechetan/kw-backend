@@ -12,8 +12,7 @@ use App\Models\Project;
 use App\Models\Team;
 use App\Notifications\NewTaskAssign;
 use App\Notifications\TaskCompleted;
-
-
+use Carbon\Carbon;
 
 class TaskController extends Controller
 {
@@ -48,15 +47,15 @@ class TaskController extends Controller
             $task->status = $request->status;
         if ($request->has('priority'))
             $task->priority = $request->priority;
-        $task->due_date = $request->due_date;
+        $task->due_date = Carbon::parse($request->due_date);
         try {
             if ($task->save()) {
                 if ($request->has('users') && is_array($request->users)) {
                     $task->users()->attach($request->users);
-                    // foreach($request->users as $user){
-                    //     $user = User::find($user);
-                    //     $user->notify(new NewTaskAssign($task));
-                    // }
+                    foreach($request->users as $user){
+                        $user = User::find($user);
+                        $user->notify(new NewTaskAssign($task));
+                    }
                 }
             }
             return $this->sendResponse($task, "Task created");
@@ -186,6 +185,20 @@ class TaskController extends Controller
         }
         if ($task->status == 'in_review') {
             return 'completed';
+        }
+    }
+
+    public function changeTaskStatus(Request $request, Task $task, $status)
+    {
+        $user_id = $request->user()->id;
+        $task->status = $status;
+        try {
+            if ($task->save()) {
+                $task->users()->syncWithoutDetaching($user_id);
+            }
+            return $this->sendResponse($task, "Task status changed to $status");
+        } catch (\Throwable $th) {
+            return $this->sendError("Something went wrong", $th->getMessage());
         }
     }
 

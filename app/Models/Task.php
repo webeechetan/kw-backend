@@ -16,6 +16,14 @@ class Task extends Model
         'updated_at',
     ];
 
+    public function getDueDateAttribute($value){
+        return date('Y-m-d', strtotime($value));
+    }
+
+    public function setStatusAttribute($value){
+        $this->attributes['status'] = strtolower($value);
+    }
+
     public function users(){
         return $this->belongsToMany(User::class);
     }
