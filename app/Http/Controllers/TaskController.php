@@ -52,10 +52,10 @@ class TaskController extends Controller
             if ($task->save()) {
                 if ($request->has('users') && is_array($request->users)) {
                     $task->users()->attach($request->users);
-                    foreach($request->users as $user){
-                        $user = User::find($user);
-                        $user->notify(new NewTaskAssign($task));
-                    }
+                    // foreach($request->users as $user){
+                    //     $user = User::find($user);
+                    //     $user->notify(new NewTaskAssign($task));
+                    // }
                 }
             }
             return $this->sendResponse($task, "Task created");
@@ -72,6 +72,7 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
+        $task->load('users', 'assignedBy', 'completedBy', 'whenCompletedNotify', 'project');
         return $this->sendResponse($task);
     }
 
@@ -90,15 +91,16 @@ class TaskController extends Controller
         $task->team_id = $request->team_id;
         $task->assigned_by = $request->user()->id;
         $task->description = $request->description;
+
         if ($request->has('status'))
             $task->status = $request->status;
         if ($request->has('priority'))
             $task->priority = $request->priority;
-        $task->due_date = $request->due_date;
+        $task->due_date = Carbon::parse($request->due_date);
         try {
             if ($task->save()) {
-                if ($request->has('users') && is_array(json_decode($request->users))) {
-                    $task->users()->sync(json_decode($request->users));
+                if ($request->has('users')) {
+                    $task->users()->sync($request->users);
                 }
             }
             return $this->sendResponse($task, "Task updated");

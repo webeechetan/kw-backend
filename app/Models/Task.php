@@ -39,4 +39,12 @@ class Task extends Model
     public function whenCompletedNotify(){
         return $this->belongsTo(User::class, 'when_completed_notify');
     }
+
+    public function project(){
+        return $this->belongsTo(Project::class);
+    }
+
+    public function comments(){
+        return $this->hasMany(Comment::class);
+    }
 }

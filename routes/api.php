@@ -8,7 +8,7 @@ use App\Http\Controllers\TeamController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\TaskController;
-
+use App\Http\Controllers\CommentController;
 
 global $notfound;
 
@@ -93,7 +93,22 @@ Route::get('/changeTaskStatus/{task}/{status}', [TaskController::class, 'changeT
             return response()->json(["success"=>false, "message"=>"Task not found"],404);
         });
 
+Route::get('/tasks/{task}/comments', [CommentController::class, 'getCommentsByTask'])
+->middleware('auth:sanctum')
+->missing(function(){
+        return response()->json(["success"=>false, "message"=>"Task not found"],404);
+});
+
+Route::post('/tasks/{task}/comments', [CommentController::class, 'store'])
+->middleware('auth:sanctum')
+->missing(function(){
+        return response()->json(["success"=>false, "message"=>"Task not found"],404);
+});
 /* Task Filters Routes */
 
 Route::get('/tasks/filter/priority/{priority}', [TaskController::class, 'filterByPriority'])
     ->middleware('auth:sanctum');
+
+/* Task Comments Routes */
+
+
