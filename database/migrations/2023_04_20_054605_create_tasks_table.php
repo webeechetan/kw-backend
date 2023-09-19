@@ -28,6 +28,7 @@ return new class extends Migration
             $table->string('priority')->default('low')->comment('low, medium, high');
             $table->dateTime('due_date')->nullable();
             $table->dateTime('completed_at')->nullable();
+            $table->boolean('is_recurring')->default(false);
             $table->timestamps();
         });
     }

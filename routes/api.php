@@ -69,24 +69,6 @@ Route::apiResource('/tasks', TaskController::class)
             return response()->json(["success"=>false, "message"=>"Task not found"],404);
         });
 
-Route::get('/changeTaskStatusToInProgress/{task}', [TaskController::class, 'changeTaskStatusToInProgress'])
-        ->middleware('auth:sanctum')
-        ->missing(function(){
-            return response()->json(["success"=>false, "message"=>"Task not found"],404);
-        });
-
-Route::get('/changeTaskStatusToCompleted/{task}', [TaskController::class, 'changeTaskStatusToCompleted'])
-        ->middleware('auth:sanctum')
-        ->missing(function(){
-            return response()->json(["success"=>false, "message"=>"Task not found"],404);
-        });
-
-Route::get('/moveTaskToNextStage/{task}', [TaskController::class, 'moveTaskToNextStage'])
-        ->middleware('auth:sanctum')
-        ->missing(function(){
-            return response()->json(["success"=>false, "message"=>"Task not found"],404);
-        });
-
 Route::get('/changeTaskStatus/{task}/{status}', [TaskController::class, 'changeTaskStatus'])
         ->middleware('auth:sanctum')
         ->missing(function(){
@@ -109,6 +91,5 @@ Route::post('/tasks/{task}/comments', [CommentController::class, 'store'])
 Route::get('/tasks/filter/priority/{priority}', [TaskController::class, 'filterByPriority'])
     ->middleware('auth:sanctum');
 
-/* Task Comments Routes */
-
+/* Task Com */
 

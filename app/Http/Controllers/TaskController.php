@@ -13,6 +13,8 @@ use App\Models\Team;
 use App\Notifications\NewTaskAssign;
 use App\Notifications\TaskCompleted;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use Symfony\Component\ErrorHandler\Debug;
 
 class TaskController extends Controller
 {
@@ -96,7 +98,7 @@ class TaskController extends Controller
             $task->status = $request->status;
         if ($request->has('priority'))
             $task->priority = $request->priority;
-        $task->due_date = Carbon::parse($request->due_date);
+        $task->due_date = Carbon::parse($request->due_date)->format('Y-m-d H:i:s');
         try {
             if ($task->save()) {
                 if ($request->has('users')) {
@@ -120,54 +122,6 @@ class TaskController extends Controller
         try {
             $task->delete();
             return $this->sendResponse($task, "Task deleted");
-        } catch (\Throwable $th) {
-            return $this->sendError("Something went wrong", $th->getMessage());
-        }
-    }
-
-    public function changeTaskStatusToInProgress(Request $request, Task $task)
-    {
-        $user_id = $request->user()->id;
-        $task->status = "in_progress";
-        try {
-            if ($task->save()) {
-                $task->users()->syncWithoutDetaching($user_id);
-            }
-            return $this->sendResponse($task, "Task status changed to in progress");
-        } catch (\Throwable $th) {
-            return $this->sendError("Something went wrong", $th->getMessage());
-        }
-    }
-
-    public function changeTaskStatusToCompleted(Request $request, Task $task)
-    {
-        $user_id = $request->user()->id;
-        $task->status = "completed";
-        $task->completed_by = $user_id;
-        try {
-            if ($task->save()) {
-                $task->users()->syncWithoutDetaching($user_id);
-                $task->assignedBy->notify(new TaskCompleted($task));
-            }
-            return $this->sendResponse($task, "Task status changed to completed");
-        } catch (\Throwable $th) {
-            return $this->sendError("Something went wrong", $th->getMessage());
-        }
-    }
-
-    // move task to next stage 
-
-    public function moveTaskToNextStage(Request $request, Task $task)
-    {
-        $user_id = $request->user()->id;
-        $task->status = $this->getCurrentTaskNextStage($task->id);
-        $task->completed_by = $user_id;
-        try {
-            if ($task->save()) {
-                $task->users()->syncWithoutDetaching($user_id);
-                // $task->assignedBy->notify(new TaskCompleted($task));
-            }
-            return $this->sendResponse($task, "Task status changed to accepted");
         } catch (\Throwable $th) {
             return $this->sendError("Something went wrong", $th->getMessage());
         }
@@ -227,5 +181,14 @@ class TaskController extends Controller
             $query->where('users.id', $userId);
         })->with('users', 'assignedBy')->get();
         return $this->sendResponse($tasks);
+    }
+
+    // suneditor upload image handler
+
+    public function uploadImage(Request $request)
+    {
+        $request = json_decode($request->getContent());
+        $file = $request->file;
+        Log::info($file);
     }
 }
